@@ -1,10 +1,18 @@
 -- DAY 2
-import System.IO
 import Control.Monad
+import System.IO
 
+data Move
+  = Rock
+  | Paper
+  | Scissors
+  deriving (Show)
 
-data Move = Rock | Paper | Scissors deriving (Show)
-data Result = Win | Draw | Loss deriving (Show)
+data Result
+  = Win
+  | Draw
+  | Loss
+  deriving (Show)
 
 moveScore :: Move -> Int
 moveScore Rock = 1
@@ -17,7 +25,6 @@ resultScore Draw = 3
 resultScore Win = 6
 
 -- PART ONE
-
 parseMove :: Char -> Move
 parseMove 'X' = Rock
 parseMove 'A' = Rock
@@ -38,7 +45,6 @@ play Scissors Rock = Win
 play Scissors Paper = Loss
 play _ _ = Draw
 
-
 score :: (Move, Move) -> Int
 score (a, b) = moveScore b + resultScore (play a b)
 
@@ -46,7 +52,6 @@ score (a, b) = moveScore b + resultScore (play a b)
 --main = do
 --        contents <- readFile "input_2.txt"
 --        print $ foldl (+) 0 . map (score . parseGame) $ lines contents
-
 -- PART TWO
 parseResult :: Char -> Result
 parseResult 'X' = Loss
@@ -66,9 +71,9 @@ parseGameTwo :: String -> (Move, Result)
 parseGameTwo game = (parseMove $ head game, parseResult $ last game)
 
 scoreTwo :: (Move, Result) -> Int
-scoreTwo (move, result) = resultScore result + (moveScore $ findMove move result)
+scoreTwo (move, result) =
+  resultScore result + (moveScore $ findMove move result)
 
 main = do
-        contents <- readFile "input_2.txt"
-        print $ foldl (+) 0 . map (scoreTwo . parseGameTwo) $ lines contents
-
+  contents <- readFile "input_2.txt"
+  print $ foldl (+) 0 . map (scoreTwo . parseGameTwo) $ lines contents
