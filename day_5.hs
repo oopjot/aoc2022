@@ -53,13 +53,8 @@ main = do
   let instructions = map parseInstruction $ drop 10 $ lines contents
   --Part ONE
   let newStack = foldl moveByOne stack instructions
-  -- Part TWO let newStack = foldl moveStack stack instructions
-  let result =
-        map
-          (\s ->
-             if length s > 0
-               then head s
-               else '_')
-          newStack
+  -- Part TWO 
+  let newStack = foldl moveStack stack instructions
+  let result = map head newStack
   print newStack
   print result
