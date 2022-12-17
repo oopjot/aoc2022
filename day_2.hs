@@ -3,16 +3,16 @@ import Control.Monad
 import System.IO
 
 data Move
-  = Rock
-  | Paper
-  | Scissors
-  deriving (Show)
+    = Rock
+    | Paper
+    | Scissors
+    deriving (Show)
 
 data Result
-  = Win
-  | Draw
-  | Loss
-  deriving (Show)
+    = Win
+    | Draw
+    | Loss
+    deriving (Show)
 
 moveScore :: Move -> Int
 moveScore Rock = 1
@@ -24,7 +24,6 @@ resultScore Loss = 0
 resultScore Draw = 3
 resultScore Win = 6
 
--- PART ONE
 parseMove :: Char -> Move
 parseMove 'X' = Rock
 parseMove 'A' = Rock
@@ -48,11 +47,6 @@ play _ _ = Draw
 score :: (Move, Move) -> Int
 score (a, b) = moveScore b + resultScore (play a b)
 
---PART ONE
---main = do
---        contents <- readFile "input_2.txt"
---        print $ foldl (+) 0 . map (score . parseGame) $ lines contents
--- PART TWO
 parseResult :: Char -> Result
 parseResult 'X' = Loss
 parseResult 'Y' = Draw
@@ -72,8 +66,13 @@ parseGameTwo game = (parseMove $ head game, parseResult $ last game)
 
 scoreTwo :: (Move, Result) -> Int
 scoreTwo (move, result) =
-  resultScore result + (moveScore $ findMove move result)
+    resultScore result + (moveScore $ findMove move result)
 
 main = do
-  contents <- readFile "input_2.txt"
-  print $ foldl (+) 0 . map (scoreTwo . parseGameTwo) $ lines contents
+    contents <- readFile "data/input_2.txt"
+    let input = lines contents
+  -- Part ONE
+    let result = foldl (+) 0 . map (score . parseGame) $ input
+  -- Part TWO
+    let result = foldl (+) 0 . map (scoreTwo . parseGameTwo) $ input
+    print result

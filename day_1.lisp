@@ -1,6 +1,6 @@
 (ql:quickload "str")
 
-(defparameter *input* (uiop:read-file-string (merge-pathnames #p"input_1.txt"
+(defparameter *input* (uiop:read-file-string (merge-pathnames #p"data/input_1.txt"
                                         *default-pathname-defaults*)))
 
 (defun sum-up (backpack)
