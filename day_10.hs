@@ -1,4 +1,4 @@
--- DAY 10
+-- DAY 9
 import Control.Monad
 import Data.List.Split
 import System.IO
@@ -35,7 +35,7 @@ crt register clock cmds screen = crt register (clock - 1) cmds (screen ++ pixel)
         | otherwise = "."
 
 main = do
-    contents <- readFile "data/input_10.txt"
+    contents <- readFile "data/input_9.txt"
     let cmds = lines contents
     -- Part ONE
     let result = sum $ map (signal (-1) 1 3 cmds) [20, 60, 100, 140, 180, 220]
