@@ -1,4 +1,4 @@
--- DAY 9
+-- DAY 10
 import Control.Monad
 import Data.List.Split
 import System.IO

@@ -1,45 +1,63 @@
--- DAY 10
+-- DAY 9
 import Control.Monad
-import Data.List.Split
+import Data.List
 import System.IO
 
-signal :: Int -> Int -> Int -> [String] -> Int -> Int
-signal cycle register _ [] _ = register
-signal cycle register 0 (cmd:cmds) end
-    | cycle == end = register * cycle
-    | cmd == "noop" = signal cycle register 1 cmds end
-    | otherwise = signal cycle (register + x) 2 cmds end
-  where
-    [_, s] = words cmd
-    x = read s :: Int
-signal cycle register clock cmds end
-    | cycle == end = register * cycle
-    | otherwise = signal (cycle + 1) register (clock - 1) cmds end
+moveH :: (Int, Int) -> String -> (Int, Int)
+moveH (x, y) direction =
+    case direction of
+        "U" -> (x, y + 1)
+        "D" -> (x, y - 1)
+        "L" -> (x - 1, y)
+        "R" -> (x + 1, y)
 
-crt :: Int -> Int -> [String] -> String -> String
-crt _ _ [] screen = screen
-crt register 0 (cmd:cmds) screen
-    | cmd == "noop" = crt register 1 cmds screen
-    | otherwise = crt (register + x) 2 cmds screen
+moveT :: (Int, Int) -> (Int, Int) -> (Int, Int)
+moveT (xh, yh) (xt, yt)
+    | (dx, dy) == (1, 1) = (xt, yt)
+    | (dx, dy) == (2, 2) = (xt', yt')
+    | xh == xt =
+        case () of
+            ()
+                | dy <= 1 -> (xt, yt)
+                | otherwise -> (xt, yt')
+    | yh == yt =
+        case () of
+            ()
+                | dx <= 1 -> (xt, yt)
+                | otherwise -> (xt', yt)
+    | dx == 2 = (xt', yh)
+    | otherwise = (xh, yt')
   where
-    [_, s] = words cmd
-    x = read s :: Int
-crt register clock cmds screen = crt register (clock - 1) cmds (screen ++ pixel)
+    dx = abs (xh - xt)
+    dy = abs (yh - yt)
+    xt' =
+        if xh > xt
+            then xt + 1
+            else xt - 1
+    yt' =
+        if yh > yt
+            then yt + 1
+            else yt - 1
+
+moves :: [(Int, Int)] -> [(String, Int)] -> [(Int, Int)]
+moves _ [] = []
+moves rope ((direction, times):cmds)
+    | times == 0 = moves rope cmds
+    | otherwise = ((last rope') : (moves rope' ((direction, times - 1) : cmds)))
   where
-    cycle = length screen
-    position = cycle `mod` 40
-    pixel
-        | register == position = "#"
-        | register == (position + 1) = "#"
-        | register == (position + 2) = "#"
-        | otherwise = "."
+    (h:tail) = rope
+    rope' = foldl f [moveH h direction] tail
+    f acc k = acc ++ [moveT (last acc) k]
+
+toCmd :: String -> (String, Int)
+toCmd cmd = (direction, read times)
+  where
+    [direction, times] = words cmd
 
 main = do
-    contents <- readFile "data/input_10.txt"
-    let cmds = lines contents
-    -- Part ONE
-    let result = sum $ map (signal (-1) 1 3 cmds) [20, 60, 100, 140, 180, 220]
-    print $ result
-    -- Part TWO
-    let result = chunksOf 40 $ crt 1 1 cmds ""
-    mapM_ print result
+    contents <- readFile "data/input_9.txt"
+    let commands = map toCmd $ lines contents
+    let result = length $ nub $ moves [(0, 0), (0, 0)] commands
+    print result
+    let result = length $ nub $ moves (take 10 $ repeat (0, 0)) commands
+    print result
