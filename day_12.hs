@@ -1,78 +1,64 @@
 -- DAY 12
 import Control.Monad
 import Data.Char
+import Data.List
+import qualified Data.Map as M
 import System.IO
 
-location :: [String] -> Char -> (Int, Int)
-location maze c =
-    head
-        [ (x, y)
-        | (y, row) <- zip [0 ..] maze
-        , (x, p) <- zip [0 ..] (maze !! y)
-        , p == c
-        ]
+type Position = (Int, Int)
 
-move :: (Int, Int) -> Char -> (Int, Int)
-move (x, y) 'U' = (x, y - 1)
-move (x, y) 'D' = (x, y + 1)
-move (x, y) 'L' = (x - 1, y)
-move (x, y) 'R' = (x + 1, y)
-move pos _ = pos
+grid :: [String] -> (M.Map Position Int, Position, Position)
+grid input = foldr f (M.empty, (-1, -1), (-1, -1)) positions
+  where
+    positions =
+        [((x, y), c) | (y, row) <- zip [0 ..] input, (x, c) <- zip [0 ..] row]
+    f (pos, c) (grid, start, end)
+        | c == 'S' = (grid', pos, end)
+        | c == 'E' = (grid', start, pos)
+        | otherwise = (grid', start, end)
+      where
+        grid' = M.insert pos (score c) grid
+    score c
+        | c == 'E' = ord 'z'
+        | c == 'S' = ord 'a'
+        | otherwise = ord c
 
-height :: [String] -> (Int, Int) -> Int
-height maze (x, y)
-    | c == 'S' = ord 'a'
-    | c == 'E' = ord 'z'
-    | otherwise = ord c
+neighbours :: M.Map Position Int -> Position -> [Position]
+neighbours grid pos@(x, y) =
+    filter f [(x - 1, y), (x, y - 1), (x + 1, y), (x, y + 1)]
   where
-    c = maze !! y !! x
+    f pos' =
+        case (M.lookup pos grid, M.lookup pos' grid) of
+            (Just n, Just n') -> n' - n <= 1
+            _ -> False
 
-validMoves :: [String] -> (Int, Int) -> String
-validMoves maze pos = filter f possibleMoves
+solve :: M.Map Position Int -> Position -> Position -> Maybe Int
+solve _ (-1, -1) _ = Nothing
+solve _ _ (-1, -1) = Nothing
+solve grid end start = search [] [(start, 0)]
   where
-    xMax = (length $ (maze !! (snd pos))) - 1
-    yMax = (length maze) - 1
-    diff m = (height maze $ move pos m) - (height maze pos)
-    f m = diff m == 0 || diff m == 1
-    possibleMoves =
-        case pos of
-            (0, 0) -> "DR"
-            (0, y)
-                | y == yMax -> "UR"
-                | otherwise -> "UDR"
-            (x, 0)
-                | x == xMax -> "DL"
-                | otherwise -> "DLR"
-            (x, y)
-                | x == xMax && y == yMax -> "UL"
-                | x == xMax -> "UDL"
-                | y == yMax -> "ULR"
-                | otherwise -> "UDLR"
-
-solve ::
-       [String]
-    -> (Int, Int)
-    -> [(Int, Int)]
-    -> [(Int, Int)]
-    -> [[(Int, Int)]]
-    -> [(Int, Int)]
-solve maze end [] _ (path:paths) = solve maze end positions path paths
-  where
-    p = head path
-    moves = validMoves maze p
-    positions = filter f $ map (move p) moves
-    f p = not . (elem p) $ path
-solve maze end (p:positions) path paths
-    | p == end = path'
-    | otherwise = solve maze end positions path (paths ++ [path'])
-  where
-    path' = p : path
+    search :: [Position] -> [(Position, Int)] -> Maybe Int
+    search _ [] = Nothing
+    search visited ((next, d):toVisit)
+        | next == end = Just d
+        | otherwise = search visited' more
+      where
+        found = filter (not . (`elem` visited)) $ neighbours grid next
+        visited' = visited ++ found
+        more = toVisit ++ (map (\p -> (p, d + 1)) found)
 
 main = do
-    contents <- readFile "data/input_12_tmp.txt"
-    let maze = lines contents
+    contents <- readFile "data/input_12.txt"
+    let maze = grid $ lines contents
+    let (grid, start, end) = maze
     -- Part ONE
-    let start = location maze 'S'
-    let end = location maze 'E'
-    let result = solve maze end [start] [] []
-    print result
+    print $ solve grid end start
+    -- Part TWO
+    let lowestPoints =
+            [ (x, y)
+            | (y, row) <- zip [0 ..] $ lines contents
+            , (x, c) <- zip [0 ..] row
+            , c == 'a' || c == 'S'
+            ]
+    print $
+        head $ sort $ filter (/= Nothing) $ map (solve grid end) lowestPoints
